@@ -1,0 +1,112 @@
+@font-face {
+  font-family: 'Point32HealthSans'; 
+  src: url('/fonts/WOFF/Point32HealthSans-Regular.woff2') format('woff'); 
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap; /* This ensures better performance */
+}
+
+@font-face {
+  font-family: 'Point32HealthSans';
+  src: url('/fonts/WOFF/Point32HealthSans-Italic.woff2') format('woff');
+  font-weight: italic;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Point32HealthSans';
+  src: url('/fonts/WOFF/Point32HealthSans-Bold.woff2') format('woff');
+  font-weight: bold;
+  font-style: bold;
+  font-display: swap;
+}
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-size: 14px; /* Default browser font size is 16px, we'll reduce it to 15px */
+}
+
+:root {
+  --header-bg: #ECF0FF;
+  --title-bg: #581C87;
+  --table-header-bg: #9CA3AF;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Point32HealthSans', 'Inter', sans-serif;
+}
+
+.header {
+  background-color: var(--header-bg);
+  padding: 1rem;
+}
+
+.page-title {
+  background-color: var(--title-bg);
+  color: white;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.table-header {
+  background-color: var(--table-header-bg);
+  color: white;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Custom classes */
+@layer components {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-thumb-gray-400::-webkit-scrollbar-thumb {
+    background-color: #9CA3AF;
+    border-radius: 6px;
+  }
+  
+  .scrollbar-track-gray-100::-webkit-scrollbar-track {
+    background-color: #F3F4F6;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+.modal-overlay {
+  z-index: 50;
+}
+
+.table-container {
+  z-index: 0;
+}
+
+.sticky-header {
+  z-index: 10;
+}
