@@ -3,25 +3,6 @@ import { LineOfBusiness, SubLineOfBusiness, LookupField } from '@/types/api';
 import axios from 'axios';
 import { ChevronUpIcon, ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
-interface LineOfBusiness {
-  id: number;
-  name: string;
-  prefix: string;
-}
-
-interface SubLineOfBusiness {
-  id: number;
-  name: string;
-  prefix: string;
-  lob_id: number;
-}
-
-interface LookupField {
-  id: number;
-  name: string;
-  lob_id: number;
-}
-
 interface Step1ModalProps {
   isOpen: boolean;
   onClose: () => void;

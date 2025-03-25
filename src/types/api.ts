@@ -8,6 +8,7 @@ export interface LineOfBusiness {
 export interface SubLineOfBusiness {
   id: string;
   name: string;
+  prefix: string;
   lobId: string;
 }
 
