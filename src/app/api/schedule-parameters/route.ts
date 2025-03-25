@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
 import oracledb from 'oracledb';
 
+// Define a type for the expected database row
+interface ScheduleParameterRow {
+  id?: string | number;
+  ID?: string | number;
+  frequency?: string;
+  FREQUENCY?: string;
+  name?: string;
+  NAME?: string;
+}
+
 export async function GET() {
   try {
     const query = `
@@ -12,8 +22,8 @@ export async function GET() {
       ORDER BY ID
     `;
 
-
-    const results = await executeQuery(query)
+    // Specify the type for executeQuery results
+    const results = await executeQuery<ScheduleParameterRow[]>(query);
 /*
     const results = await executeQuery(query, [], {
       outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -24,12 +34,16 @@ export async function GET() {
     });
 */
 
+    // Check if results is an array before mapping
+    if (!Array.isArray(results)) {
+      throw new Error('Expected array result from database query');
+    }
+
     // Transform response to ensure correct casing
-    const transformedResults = results.map((row: any) => ({
+    const transformedResults = results.map((row: ScheduleParameterRow) => ({
       id: row.ID || row.id,
       name: row.FREQUENCY || row.name || row.NAME
     }));
-
 
     return NextResponse.json(transformedResults);
   } catch (error) {
