@@ -89,6 +89,11 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // Add null check to handle potential undefined outBinds
+    if (!reportResult.outBinds || !reportResult.outBinds.reportId) {
+      throw new Error('Failed to get report ID from database');
+    }
+
     const reportId = reportResult.outBinds.reportId[0];
 
     // 2. Insert into ODER_REPORT_FIELDS
@@ -135,6 +140,11 @@ console.log(`ODER_REPORT_CRITERIA: field_id: ${row.lookup_field_id}; Operator ${
           groupId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
         }
       );
+
+      // Add null check to handle potential undefined outBinds
+      if (!groupResult.outBinds || !groupResult.outBinds.groupId) {
+        throw new Error('Failed to get group ID from database');
+      }
 
       const groupId = groupResult.outBinds.groupId[0];
 
