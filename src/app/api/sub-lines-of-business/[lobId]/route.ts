@@ -10,7 +10,7 @@ export async function GET(
   const { lobId } = await context.params;
 
   try {
-    const result = await executeQuery<Array<{ ID: string; NAME: string }>>(
+    const result = await executeQuery<Array<{ ID: string; NAME: string; PREFIX: string }>>(
       'SELECT ID, NAME, PREFIX FROM ODER_SUB_LINES_OF_BUSINESS WHERE LOB_ID = :lobId ORDER BY NAME',
       [lobId],
       {
