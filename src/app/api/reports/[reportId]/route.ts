@@ -612,11 +612,13 @@ async function generateQueryStatement(reportId: string | number, connection: ora
 
   // Build WHERE clause
   let whereClause = '';
-  if (criteriaResult.rows?.length > 0) {
+//  if (criteriaResult.rows?.length > 0) {
+  if (criteriaResult.rows && criteriaResult.rows.length > 0) {
     whereClause = 'WHERE ';
-    criteriaResult.rows.forEach((criteria: any, index: number) => {
-      if (index > 0) {
-        whereClause += ` ${criteria.GROUP_OPERATOR || ''} `;
+    // Use optional chaining here too, with fallback to an empty array
+    (criteriaResult.rows || []).forEach((criteria: any, index: number) => {
+      if (criteria.GROUP_OPERATOR) {
+        whereClause += ` ${criteria.GROUP_OPERATOR} `;
       }
 
       let value = criteria.CRITERIA_VALUE;

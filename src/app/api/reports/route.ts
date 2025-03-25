@@ -10,6 +10,8 @@ interface ReportData {
   selectedFields: Array<{
     id: string;
     name: string;
+    lookup_field_id?: string; // Added based on usage in code
+    display_order?: number; // Added based on usage in code
   }>;
   criteriaRows: Array<{
     id: string;
@@ -17,7 +19,30 @@ interface ReportData {
     condition: string;
     value: string;
     connector: 'AND' | 'OR' | null;
+    lookup_field_id?: string; // Added based on usage in code
+    operator_id?: string; // Added based on usage in code
+    criteria_value?: string; // Added based on usage in code
+    criteria_order?: number; // Added based on usage in code
+    group_operator?: string; // Added based on usage in code
   }>;
+}
+
+// Define types for Oracle DB result objects
+interface OracleResultWithOutBinds<T> {
+  outBinds: T;
+  // Include other properties that might be in the result
+  rows?: any[];
+  metaData?: any[];
+}
+
+// Specific type for reportResult
+interface ReportResultBinds {
+  reportId: number[];
+}
+
+// Specific type for groupResult
+interface GroupResultBinds {
+  groupId: number[];
 }
 
 export async function POST(request: NextRequest) {
@@ -35,7 +60,7 @@ export async function POST(request: NextRequest) {
     await connection.execute('SET TRANSACTION NAME \'CreateReport\'');
 
     // 1. Insert into ODER_REPORTS and get the ID
-    const reportResult = await connection.execute(
+    const reportResult = await connection.execute<OracleResultWithOutBinds<ReportResultBinds>>(
       `INSERT INTO ODER_REPORTS (
         NAME, 
         DESCRIPTION, 
@@ -69,7 +94,7 @@ export async function POST(request: NextRequest) {
     // 2. Insert into ODER_REPORT_FIELDS
     const fieldValues = data.selectedFields.map((field, index) => ({
       reportId,
-      lookupFieldId: parseInt(field.lookup_field_id),
+      lookupFieldId: parseInt(field.lookup_field_id as string),
       displayOrder: field.display_order
     }));
 
@@ -93,7 +118,7 @@ export async function POST(request: NextRequest) {
 console.log(`ODER_REPORT_CRITERIA: field_id: ${row.lookup_field_id}; Operator ${row.operator_id}; criteria ${row.criteria_value}; order ${row.criteria_order}`);
 
       // Insert into ODER_REPORT_CRITERIA_GROUPS
-      const groupResult = await connection.execute(
+      const groupResult = await connection.execute<OracleResultWithOutBinds<GroupResultBinds>>(
         `INSERT INTO ODER_REPORT_CRITERIA_GROUPS (
           REPORT_ID, 
           GROUP_ORDER, 
@@ -133,8 +158,8 @@ console.log(`ODER_REPORT_CRITERIA: field_id: ${row.lookup_field_id}; Operator ${
         {
           reportId,
           groupId,
-          lookupFieldId: parseInt(row.lookup_field_id),
-          operatorId: parseInt(row.operator_id),
+          lookupFieldId: parseInt(row.lookup_field_id as string),
+          operatorId: parseInt(row.operator_id as string),
           criteriaValue: row.criteria_value,
           criteriaOrder: i + 1
         }
