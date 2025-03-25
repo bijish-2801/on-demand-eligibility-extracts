@@ -58,7 +58,7 @@ export async function GET(
 
     const result = await executeQuery<ReportConfig[]>(
       query, 
-      [reportId], // Changed from object to array
+      [reportId],
       {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
         useCache: false
@@ -125,7 +125,7 @@ export async function POST(
     `;
     const existingConfig = await executeQuery<Array<{ REPORT_ID: string }>>(
       checkQuery, 
-      [reportId], // Changed from object to array
+      [reportId],
       {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
         useCache: false
@@ -149,16 +149,16 @@ export async function POST(
           EMAIL_DL_LIST = :emailDlList
         WHERE REPORT_ID = :reportId
       `;
-      queryParams = {
-        fileFormatId: data.fileFormatId,
-        fileDelimiterId: data.fileDelimiterId,
-        scheduleParameterId: data.scheduleParameterId,
-        reportRuntime: data.reportRuntime,
-        sftpServerId: data.sftpServerId,
-        sftpPath: data.sftpPath,
-        emailDlList: data.emailDlList,
-        reportId: reportId
-      };
+      queryParams = [
+        data.fileFormatId,
+        data.fileDelimiterId,
+        data.scheduleParameterId,
+        data.reportRuntime,
+        data.sftpServerId,
+        data.sftpPath,
+        data.emailDlList,
+        reportId
+      ];
     } else {
       // Insert new configuration
       query = `
@@ -182,16 +182,16 @@ export async function POST(
           :emailDlList
         )
       `;
-      queryParams = {
-        reportId: reportId,
-        fileFormatId: data.fileFormatId,
-        fileDelimiterId: data.fileDelimiterId,
-        scheduleParameterId: data.scheduleParameterId,
-        reportRuntime: data.reportRuntime,
-        sftpServerId: data.sftpServerId,
-        sftpPath: data.sftpPath,
-        emailDlList: data.emailDlList,
-      };
+      queryParams = [
+        reportId,
+        data.fileFormatId,
+        data.fileDelimiterId,
+        data.scheduleParameterId,
+        data.reportRuntime,
+        data.sftpServerId,
+        data.sftpPath,
+        data.emailDlList
+      ];
     }
 
     try {
