@@ -3,7 +3,6 @@
 
 import Header from '@/components/Header';
 import ReportsTable from '@/components/ReportsTable';
-import SearchBox from '@/components/SearchBox';
 
 export default function Home() {
   const handleSearch = (query: string) => {
@@ -22,7 +21,6 @@ export default function Home() {
           </h1>
         </div>
         
-{/*        <SearchBox onSearch={handleSearch} /> */}
         <ReportsTable />
       </main>
       
