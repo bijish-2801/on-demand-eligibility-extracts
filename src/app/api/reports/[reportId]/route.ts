@@ -2,6 +2,16 @@ import { executeQuery, initialize } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import oracledb from 'oracledb';
 
+// Add interface for Oracle binding results
+interface OracleBindOutResult {
+  outBinds: {
+    groupId?: number[];
+    returnId?: number[];
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
 export async function GET(
   request: Request,
   context: { params: { reportId: string } }
@@ -31,8 +41,8 @@ export async function GET(
         JOIN ODER_LINES_OF_BUSINESS l ON r.LOB_ID = l.ID
         LEFT JOIN ODER_SUB_LINES_OF_BUSINESS sl ON r.SUB_LOB_ID = sl.ID
       WHERE 
-        r.ID = :reportId
-        AND (r.IS_PUBLIC = 1 OR r.CREATED_BY = :userId)
+        r.ID = :1
+        AND (r.IS_PUBLIC = 1 OR r.CREATED_BY = :2)
     `;
 
     // Get selected fields
@@ -45,7 +55,7 @@ export async function GET(
         ODER_REPORT_FIELDS rf
         JOIN ODER_LOOKUP_SELECT_FIELDS lf ON rf.LOOKUP_FIELD_ID = lf.ID
       WHERE 
-        rf.REPORT_ID = :reportId
+        rf.REPORT_ID = :1
       ORDER BY 
         rf.DISPLAY_ORDER
     `;
@@ -66,7 +76,7 @@ export async function GET(
         JOIN ODER_LOOKUP_CRITERIA_FIELDS lf ON rc.LOOKUP_FIELD_ID = lf.ID
         JOIN ODER_OPERATORS op ON rc.OPERATOR_ID = op.ID
       WHERE 
-        rc.REPORT_ID = :reportId
+        rc.REPORT_ID = :1
       ORDER BY 
         rcg.GROUP_ORDER, rc.CRITERIA_ORDER
     `;
@@ -238,9 +248,9 @@ export async function PATCH(
             operator: isLastRow ? null : row.connector,
             groupId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
           }
-        );
+        ) as OracleBindOutResult; // Type assertion for proper TypeScript support
 
-        const groupId = groupResult.outBinds.groupId[0];
+        const groupId = groupResult.outBinds.groupId?.[0];
 
         // Insert criteria
         await connection.execute(
@@ -366,6 +376,7 @@ export async function PUT(
         const row = data.criteriaRows[i];
         const isLastRow = i === data.criteriaRows.length - 1;
 console.log (':::isLastRow:::', isLastRow);
+        
         // Insert criteria group
         const groupResult = await connection.execute(
           `INSERT INTO ODER_REPORT_CRITERIA_GROUPS (
@@ -378,9 +389,9 @@ console.log (':::isLastRow:::', isLastRow);
             operator: isLastRow ? null : row.group_operator || row.connector || 'AND', // Handle different field names
             returnId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
           }
-        );
+        ) as OracleBindOutResult; // Type assertion for proper TypeScript support
         
-        groupId = groupResult.outBinds.returnId[0];
+        groupId = groupResult.outBinds.returnId?.[0];
         
         // Insert criteria row
         await connection.execute(
@@ -474,10 +485,6 @@ console.log (':::isLastRow:::', isLastRow);
     if (criteriaResult.rows && criteriaResult.rows.length > 0) {
       whereClause = 'WHERE ';
       criteriaResult.rows.forEach((criteria: any, index: number) => {
-//        if (index > 0) {
-//          whereClause += ` ${criteria.CRITERIA_GROUP_OPERATOR || ''} `;
-//        }
-
         let value = criteria.CRITERIA_VALUE;
         
         // Handle different field types
@@ -497,8 +504,6 @@ console.log('** * ** *PUT* ** ** ** whereClause:', {whereClause});
       });
     }
 
-    // Generate and update query statement
-//    const queryStatement = await generateQueryStatement(reportId, connection);
     // Construct final query
     const queryStatement = `SELECT ${selectClause}
       FROM MEMBERSHIP M
@@ -580,25 +585,30 @@ async function generateQueryStatement(reportId: string | number, connection: ora
        JOIN ODER_LOOKUP_CRITERIA_FIELDS lf ON rc.LOOKUP_FIELD_ID = lf.ID
        JOIN ODER_OPERATORS op ON rc.OPERATOR_ID = op.ID
        WHERE rc.REPORT_ID = :reportId
-       ORDER BY rcg.GROUP_ORDER, rc.CRITERIA_ORDER`
+       ORDER BY rcg.GROUP_ORDER, rc.CRITERIA_ORDER`;
+
+  interface OracleResult<T = any> {
+    rows?: T[];
+    [key: string]: any;
+  }
 
   const [fieldsResult, criteriaResult] = await Promise.all([
     connection.execute(
 	  fieldsQuery,
       { reportId: parseInt(reportId.toString()) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    ),
+    ) as Promise<OracleResult>,
     connection.execute(
 	  criteriaQuery,
       { reportId: parseInt(reportId.toString()) },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    )
+    ) as Promise<OracleResult>
   ]);
 
   // Build SELECT clause
-  const selectClause = fieldsResult.rows
-    .map((field: any) => `${field.FIELD_NAME} as "${field.DISPLAY_NAME}"`)
-    .join(', ');
+  const selectClause = fieldsResult.rows?.map((field: any) => 
+    `${field.FIELD_NAME} as "${field.DISPLAY_NAME}"`
+  ).join(', ') || '';
 
   // Build WHERE clause
   let whereClause = '';
