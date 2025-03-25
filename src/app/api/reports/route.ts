@@ -27,22 +27,13 @@ interface ReportData {
   }>;
 }
 
-// Define types for Oracle DB result objects
-interface OracleResultWithOutBinds<T> {
-  outBinds: T;
-  // Include other properties that might be in the result
+// Define an interface for Oracle database results that aligns with actual structure
+interface OracleResult {
+  outBinds?: {
+    [key: string]: any; // Allow any property name with any value
+  };
   rows?: any[];
   metaData?: any[];
-}
-
-// Specific type for reportResult
-interface ReportResultBinds {
-  reportId: number[];
-}
-
-// Specific type for groupResult
-interface GroupResultBinds {
-  groupId: number[];
 }
 
 export async function POST(request: NextRequest) {
@@ -60,7 +51,7 @@ export async function POST(request: NextRequest) {
     await connection.execute('SET TRANSACTION NAME \'CreateReport\'');
 
     // 1. Insert into ODER_REPORTS and get the ID
-    const reportResult = await connection.execute<OracleResultWithOutBinds<ReportResultBinds>>(
+    const reportResult = await connection.execute(
       `INSERT INTO ODER_REPORTS (
         NAME, 
         DESCRIPTION, 
@@ -87,7 +78,7 @@ export async function POST(request: NextRequest) {
         createdBy: '1', // Hardcoded as per requirement
         reportId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
       }
-    );
+    ) as OracleResult;
 
     // Add null check to handle potential undefined outBinds
     if (!reportResult.outBinds || !reportResult.outBinds.reportId) {
@@ -123,7 +114,7 @@ export async function POST(request: NextRequest) {
 console.log(`ODER_REPORT_CRITERIA: field_id: ${row.lookup_field_id}; Operator ${row.operator_id}; criteria ${row.criteria_value}; order ${row.criteria_order}`);
 
       // Insert into ODER_REPORT_CRITERIA_GROUPS
-      const groupResult = await connection.execute<OracleResultWithOutBinds<GroupResultBinds>>(
+      const groupResult = await connection.execute(
         `INSERT INTO ODER_REPORT_CRITERIA_GROUPS (
           REPORT_ID, 
           GROUP_ORDER, 
@@ -139,7 +130,7 @@ console.log(`ODER_REPORT_CRITERIA: field_id: ${row.lookup_field_id}; Operator ${
           operator: isLastRow ? null : row.group_operator,
           groupId: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
         }
-      );
+      ) as OracleResult;
 
       // Add null check to handle potential undefined outBinds
       if (!groupResult.outBinds || !groupResult.outBinds.groupId) {
