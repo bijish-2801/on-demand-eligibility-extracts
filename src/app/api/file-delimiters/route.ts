@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
+import { FileDelimiter } from '@/types/database';
 import oracledb from 'oracledb';
 
 export async function GET() {
@@ -12,24 +13,14 @@ export async function GET() {
       ORDER BY DELIMITER_NAME
     `;
 
-
-    const results = await executeQuery(query)
-/*
-    const results = await executeQuery(query, [], {
-      outFormat: oracledb.OUT_FORMAT_OBJECT,
-      fetchInfo: {
-        "ID": { type: oracledb.STRING },
-        "DELIMITER_NAME": { type: oracledb.STRING }
-      }
-    });
-*/
+    // Specify the return type as an array of FileDelimiter
+    const results = await executeQuery<FileDelimiter[]>(query);
 
     // Transform response to ensure correct casing
-    const transformedResults = results.map((row: any) => ({
+    const transformedResults = results.map((row) => ({
       id: row.ID || row.id,
       name: row.DELIMITER_NAME || row.name || row.NAME
     }));
-
 
     return NextResponse.json(transformedResults);
   } catch (error) {

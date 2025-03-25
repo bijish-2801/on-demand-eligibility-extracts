@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
+import { FileFormat } from '@/types/database'
+
 import oracledb from 'oracledb';
 
 export async function GET() {
@@ -13,19 +15,11 @@ export async function GET() {
       ORDER BY FORMAT_NAME
     `;
 
-    const results = await executeQuery(query)
-/*
-    const results = await executeQuery(query, [], {
-      outFormat: oracledb.OUT_FORMAT_OBJECT,
-      fetchInfo: {
-        "ID": { type: oracledb.STRING },
-        "FORMAT_NAME": { type: oracledb.STRING },
-        "DESCRIPTION": { type: oracledb.STRING }
-      }
-    });
-*/
+    // Specify the return type as an array of FileFormat
+    const results = await executeQuery<FileFormat[]>(query);
+
     // Transform response to ensure correct casing
-    const transformedResults = results.map((row: any) => ({
+    const transformedResults = results.map((row) => ({
       id: row.ID || row.id,
       name: row.FORMAT_NAME || row.name || row.NAME,
       description: row.DESCRIPTION || row.description

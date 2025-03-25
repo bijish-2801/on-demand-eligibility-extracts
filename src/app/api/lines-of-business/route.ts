@@ -5,7 +5,7 @@ import oracledb from 'oracledb';
 export async function GET() {
   try {
     // Use executeQuery with caching enabled and a longer TTL since LOB data changes infrequently
-    const result = await executeQuery<Array<{ ID: string; NAME: string }>>(
+    const result = await executeQuery<Array<{ ID: string; NAME: string; PREFIX: string; SOURCE_SYS_ID: string; }>>(
       'SELECT ID, NAME, PREFIX, SOURCE_SYS_ID FROM ODER_LINES_OF_BUSINESS ORDER BY NAME',
       [], // no params
       {

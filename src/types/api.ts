@@ -1,6 +1,8 @@
 export interface LineOfBusiness {
   id: string;
   name: string;
+  prefix: string;
+  source_sys_id: string;
 }
 
 export interface SubLineOfBusiness {

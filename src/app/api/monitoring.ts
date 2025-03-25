@@ -9,9 +9,14 @@ export async function getPoolStatus() {
       timestamp: new Date().toISOString()
     };
   } catch (error) {
+    // Type-check the error before accessing its properties
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Unknown error';
+      
     return {
       status: 'error',
-      error: error.message,
+      error: errorMessage,
       timestamp: new Date().toISOString()
     };
   }

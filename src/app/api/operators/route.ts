@@ -24,7 +24,8 @@ export async function GET(request: Request) {
 
       const result = await executeQuery<Array<{ ID: number; FIELD_TYPE: string; OPERATOR_SYMBOL: string }>>(
         query,
-        { fieldName, lobId },
+//        { fieldName, lobId },
+        [fieldName, lobId], // Changed from object to array
         {
           outFormat: oracledb.OUT_FORMAT_OBJECT,
           useCache: true,

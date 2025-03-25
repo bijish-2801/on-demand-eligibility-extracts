@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
+import { SftpServer } from '@/types/database';
 import oracledb from 'oracledb';
 
 export async function GET() {
@@ -13,19 +14,11 @@ export async function GET() {
       ORDER BY SERVER_NAME
     `;
 
-    const results = await executeQuery(query)
-/*
-    const results = await executeQuery(query, [], {
-      outFormat: oracledb.OUT_FORMAT_OBJECT,
-      fetchInfo: {
-        "ID": { type: oracledb.STRING },
-        "SERVER_NAME": { type: oracledb.STRING },
-        "DESCRIPTION": { type: oracledb.STRING }
-      }
-    });
-*/
+    // Specify the return type as an array of SftpServer
+    const results = await executeQuery<SftpServer[]>(query);
+
     // Transform response to ensure correct casing
-    const transformedResults = results.map((row: any) => ({
+    const transformedResults = results.map((row) => ({
       id: row.ID || row.id,
       name: row.SERVER_NAME || row.name || row.NAME,
       description: row.DESCRIPTION || row.description

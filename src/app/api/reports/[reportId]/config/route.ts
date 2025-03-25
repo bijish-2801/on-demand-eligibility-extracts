@@ -2,6 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/db';
 import oracledb from 'oracledb';
 
+// Define appropriate interfaces for type safety
+interface ReportConfig {
+  REPORTNAME?: string;
+  reportName?: string;
+  DESCRIPTION?: string;
+  description?: string;
+  LOBNAME?: string;
+  lobName?: string;
+  SUBLOBNAME?: string;
+  subLobName?: string;
+  FILEFORMATID?: string;
+  fileFormatId?: string;
+  FILEDELIMITERID?: string;
+  fileDelimiterId?: string;
+  SCHEDULEPARAMETERID?: string;
+  scheduleParameterId?: string;
+  REPORTRUNTIME?: string;
+  reportRuntime?: string;
+  SFTPSERVERID?: string;
+  sftpServerId?: string;
+  SFTPPATH?: string;
+  sftpPath?: string;
+  EMAILDLLIST?: string;
+  emailDlList?: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { reportId: string } }
@@ -30,12 +56,14 @@ export async function GET(
       WHERE r.ID = :reportId
     `;
 
-    const result = await executeQuery(query, { reportId }, 
+    const result = await executeQuery<ReportConfig[]>(
+      query, 
+      [reportId], // Changed from object to array
       {
-        outFormat: oracledb.OUT_FORMAT_OBJECT, // Use the proper Oracle constant
-        useCache: false // No caching for actual extract results
-//        cacheTTL: 0 * 1000 // 0 seconds cache, shorter due to frequently changing data
-      });
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        useCache: false
+      }
+    );
     
     if (result && result.length > 0) {
       // Transform the result to ensure proper casing of properties
@@ -55,8 +83,6 @@ export async function GET(
 
       return NextResponse.json(transformedResult);
     }
-    
-//    return NextResponse.json(null);
     
     // If no result, return default structure
     return NextResponse.json({
@@ -97,12 +123,15 @@ export async function POST(
       FROM ODER_REPORT_CONFIGS 
       WHERE REPORT_ID = :reportId
     `;
-    const existingConfig = await executeQuery(checkQuery, { reportId }, 
+    const existingConfig = await executeQuery<Array<{ REPORT_ID: string }>>(
+      checkQuery, 
+      [reportId], // Changed from object to array
       {
-        outFormat: oracledb.OUT_FORMAT_OBJECT, // Use the proper Oracle constant
-        useCache: false // No caching for actual extract results
-//        cacheTTL: 0 * 1000 // 0 seconds cache, shorter due to frequently changing data
-      });
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        useCache: false
+      }
+    );
+    
     let query;
     let queryParams;
 
@@ -166,10 +195,14 @@ export async function POST(
     }
 
     try {
-      await executeQuery(query, queryParams, {
-        outFormat: oracledb.OUT_FORMAT_OBJECT,
-        autoCommit: true // Add explicit autoCommit
-      });
+      await executeQuery<any>(
+        query, 
+        queryParams, 
+        {
+          outFormat: oracledb.OUT_FORMAT_OBJECT,
+          autoCommit: true
+        }
+      );
       
       return NextResponse.json({ success: true });
     } catch (dbError) {
