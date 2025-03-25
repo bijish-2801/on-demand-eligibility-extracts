@@ -476,7 +476,7 @@ console.log (':::isLastRow:::', isLastRow);
     ]);
 
     // Build SELECT clause
-    const selectClause = fieldsResult.rows
+    const selectClause = (fieldsResult.rows || [])
       .map((field: any) => `${field.FIELD_NAME} "${field.DISPLAY_NAME}"`)
       .join(', ');
 
@@ -606,7 +606,7 @@ async function generateQueryStatement(reportId: string | number, connection: ora
   ]);
 
   // Build SELECT clause
-  const selectClause = fieldsResult.rows?.map((field: any) => 
+  const selectClause = (fieldsResult.rows || []).map((field: any) => 
     `${field.FIELD_NAME} as "${field.DISPLAY_NAME}"`
   ).join(', ') || '';
 
@@ -629,8 +629,8 @@ async function generateQueryStatement(reportId: string | number, connection: ora
       whereClause += `${criteria.FIELD_NAME} ${criteria.OPERATOR_SYMBOL} ${value}`;
     });
   }
-console.log('** * ** *GENERATEQUERYSTATEMENT* ** ** ** criteria:', {criteria});
-console.log('** * ** *GENERATEQUERYSTATEMENT* ** ** ** whereClause:', {whereClause});
+
+  console.log('** * ** *GENERATEQUERYSTATEMENT* ** ** ** whereClause:', {whereClause});
 
   return `
     SELECT ${selectClause}
